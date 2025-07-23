@@ -1,4 +1,4 @@
-// Sistema de Vídeo de Introdução para Mestre das Rochas - Versão Robusta com Appwrite
+// Sistema de Vídeo de Introdução para Mestre das Rochas - Versão Final com Appwrite
 
 class IntroVideoSystem {
   constructor() {
@@ -6,35 +6,9 @@ class IntroVideoSystem {
     this.video = null;
     this.isPlaying = false;
     this.hasShown = localStorage.getItem('intro-video-shown') === 'true';
-    this.videoSources = [
-      // Appwrite URL como primeira opção (mais confiável)
-      'https://nyc.cloud.appwrite.io/v1/storage/buckets/688033d700210f07ca87/files/688033e60016c7562df0/view?project=688033c900351e6b5fa7&mode=admin',
-      // Fallbacks locais
-      './public/mestredasrochas_intro.mp4',
-      'public/mestredasrochas_intro.mp4',
-      '/public/mestredasrochas_intro.mp4'
-    ];
-    this.currentSourceIndex = 0;
 
-    console.log('IntroVideoSystem initialized with Appwrite URL');
-
-    // Tentar obter URL do Supabase se disponível
-    this.initSupabaseSource();
-  }
-
-  // Inicializar fonte do Supabase
-  async initSupabaseSource() {
-    try {
-      if (window.supabaseVideoManager) {
-        const supabaseUrl = window.supabaseVideoManager.getVideoUrl();
-        if (supabaseUrl) {
-          this.videoSources.unshift(supabaseUrl);
-          console.log('Supabase video URL added:', supabaseUrl);
-        }
-      }
-    } catch (error) {
-      console.warn('Could not get Supabase video URL:', error);
-    }
+    console.log('🎬 IntroVideoSystem initialized with Appwrite URL');
+    console.log('📹 hasShown status:', this.hasShown);
   }
 
   // Criar estilos CSS dinâmicos
@@ -45,94 +19,94 @@ class IntroVideoSystem {
     style.id = 'intro-video-styles';
     style.textContent = `
       .intro-video-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: #000;
-        z-index: 99999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: #000 !important;
+        z-index: 999999 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
         opacity: 0;
         visibility: hidden;
-        transition: opacity 0.8s ease, visibility 0.8s ease;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
       }
 
       .intro-video-overlay.show {
-        opacity: 1;
-        visibility: visible;
+        opacity: 1 !important;
+        visibility: visible !important;
       }
 
       .intro-video-player {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        background: #000;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: contain !important;
+        background: #000 !important;
       }
 
       .intro-video-controls {
-        position: absolute;
-        bottom: 30px;
-        right: 30px;
-        z-index: 100001;
-        display: flex;
-        gap: 15px;
+        position: absolute !important;
+        bottom: 30px !important;
+        right: 30px !important;
+        z-index: 1000000 !important;
+        display: flex !important;
+        gap: 15px !important;
       }
 
       .intro-btn {
-        background: rgba(255, 255, 255, 0.15);
-        border: 2px solid rgba(255, 255, 255, 0.4);
-        color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
-        font-family: 'Inter', sans-serif;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        background: rgba(255, 255, 255, 0.2) !important;
+        border: 2px solid rgba(255, 255, 255, 0.5) !important;
+        color: white !important;
+        padding: 15px 25px !important;
+        border-radius: 8px !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        backdrop-filter: blur(10px) !important;
+        font-family: 'Inter', sans-serif !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
       }
 
       .intro-btn:hover {
-        background: rgba(255, 255, 255, 0.25);
-        border-color: rgba(255, 255, 255, 0.6);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        background: rgba(255, 255, 255, 0.3) !important;
+        border-color: rgba(255, 255, 255, 0.7) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
       }
 
       .intro-btn.play-btn {
-        background: rgba(0, 255, 100, 0.2);
-        border-color: rgba(0, 255, 100, 0.5);
+        background: rgba(0, 255, 100, 0.3) !important;
+        border-color: rgba(0, 255, 100, 0.6) !important;
       }
 
       .intro-btn.play-btn:hover {
-        background: rgba(0, 255, 100, 0.3);
-        border-color: rgba(0, 255, 100, 0.7);
+        background: rgba(0, 255, 100, 0.4) !important;
+        border-color: rgba(0, 255, 100, 0.8) !important;
       }
 
       .intro-video-loading {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        color: white;
-        font-size: 18px;
-        font-family: 'Inter', sans-serif;
-        text-align: center;
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        color: white !important;
+        font-size: 20px !important;
+        font-family: 'Inter', sans-serif !important;
+        text-align: center !important;
       }
 
       .intro-spinner {
-        width: 40px;
-        height: 40px;
-        border: 3px solid rgba(255,255,255,0.3);
-        border-top: 3px solid white;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 15px;
+        width: 50px !important;
+        height: 50px !important;
+        border: 4px solid rgba(255,255,255,0.3) !important;
+        border-top: 4px solid white !important;
+        border-radius: 50% !important;
+        animation: spin 1s linear infinite !important;
+        margin: 0 auto 20px !important;
       }
 
       @keyframes spin {
@@ -142,19 +116,19 @@ class IntroVideoSystem {
 
       @media (max-width: 768px) {
         .intro-video-controls {
-          bottom: 20px;
-          right: 20px;
-          flex-direction: column;
+          bottom: 20px !important;
+          right: 20px !important;
+          flex-direction: column !important;
         }
         
         .intro-btn {
-          padding: 10px 16px;
-          font-size: 12px;
+          padding: 12px 20px !important;
+          font-size: 14px !important;
         }
       }
     `;
     document.head.appendChild(style);
-    console.log('Intro video styles injected');
+    console.log('🎨 Intro video styles injected');
   }
 
   // Criar HTML do overlay
@@ -164,12 +138,10 @@ class IntroVideoSystem {
     overlay.id = 'intro-video-overlay';
 
     overlay.innerHTML = `
-      <video class="intro-video-player" id="intro-video-player" preload="metadata" muted>
+      <video class="intro-video-player" id="intro-video-player" preload="auto" muted crossorigin="anonymous">
         <source src="https://nyc.cloud.appwrite.io/v1/storage/buckets/688033d700210f07ca87/files/688033e60016c7562df0/view?project=688033c900351e6b5fa7&mode=admin" type="video/mp4">
-        <source src="./public/mestredasrochas_intro.mp4" type="video/mp4">
-        <source src="public/mestredasrochas_intro.mp4" type="video/mp4">
         Seu navegador não suporta reprodução de vídeo HTML5.
-      </source>
+      </video>
       
       <div class="intro-video-loading" id="intro-loading">
         <div class="intro-spinner"></div>
@@ -178,10 +150,10 @@ class IntroVideoSystem {
       
       <div class="intro-video-controls" id="intro-controls" style="display: none;">
         <button class="intro-btn play-btn" id="intro-play-btn">
-          ▶ REPRODUZIR
+          ▶ CLIQUE PARA ASSISTIR
         </button>
         <button class="intro-btn" id="intro-skip-btn">
-          ⏭ PULAR
+          ⏭ PULAR INTRODUÇÃO
         </button>
       </div>
     `;
@@ -192,40 +164,54 @@ class IntroVideoSystem {
   // Configurar eventos do vídeo
   setupVideoEvents(video) {
     video.addEventListener('loadstart', () => {
-      console.log('Video loading started');
+      console.log('📺 Video loading started');
     });
 
     video.addEventListener('loadedmetadata', () => {
-      console.log('Video metadata loaded');
+      console.log('✅ Video metadata loaded');
       this.hideLoading();
       this.showControls();
     });
 
     video.addEventListener('canplay', () => {
-      console.log('Video can start playing');
+      console.log('🎯 Video can start playing');
       this.tryAutoplay();
     });
 
     video.addEventListener('play', () => {
-      console.log('Video started playing');
+      console.log('▶️ Video started playing');
       this.isPlaying = true;
       this.hideControls();
     });
 
     video.addEventListener('pause', () => {
-      console.log('Video paused');
+      console.log('⏸️ Video paused');
       this.isPlaying = false;
       this.showControls();
     });
 
     video.addEventListener('ended', () => {
-      console.log('Video ended');
+      console.log('🏁 Video ended');
       this.closeVideo();
     });
 
     video.addEventListener('error', (e) => {
-      console.error('Video error:', e);
+      console.error('❌ Video error:', e);
+      console.error('❌ Video error details:', {
+        code: e.target.error?.code,
+        message: e.target.error?.message,
+        networkState: e.target.networkState,
+        readyState: e.target.readyState
+      });
       this.handleVideoError();
+    });
+
+    video.addEventListener('stalled', () => {
+      console.warn('⚠️ Video stalled');
+    });
+
+    video.addEventListener('waiting', () => {
+      console.log('⏳ Video waiting for data');
     });
   }
 
@@ -234,10 +220,11 @@ class IntroVideoSystem {
     if (!this.video) return;
 
     try {
+      console.log('🚀 Attempting autoplay...');
       await this.video.play();
-      console.log('Autoplay successful');
+      console.log('✅ Autoplay successful');
     } catch (error) {
-      console.warn('Autoplay blocked:', error);
+      console.warn('🚫 Autoplay blocked:', error);
       this.showPlayButton();
     }
   }
@@ -250,7 +237,7 @@ class IntroVideoSystem {
     if (playBtn && controls) {
       controls.style.display = 'flex';
       playBtn.style.display = 'block';
-      playBtn.textContent = '▶ CLIQUE PARA ASSISTIR';
+      console.log('🎮 Play button shown');
     }
   }
 
@@ -259,6 +246,7 @@ class IntroVideoSystem {
     const loading = document.getElementById('intro-loading');
     if (loading) {
       loading.style.display = 'none';
+      console.log('⏳ Loading hidden');
     }
   }
 
@@ -267,6 +255,7 @@ class IntroVideoSystem {
     const controls = document.getElementById('intro-controls');
     if (controls && !this.isPlaying) {
       controls.style.display = 'flex';
+      console.log('🎮 Controls shown');
     }
   }
 
@@ -275,6 +264,7 @@ class IntroVideoSystem {
     const controls = document.getElementById('intro-controls');
     if (controls) {
       controls.style.display = 'none';
+      console.log('🎮 Controls hidden');
     }
   }
 
@@ -285,6 +275,7 @@ class IntroVideoSystem {
 
     if (playBtn) {
       playBtn.addEventListener('click', () => {
+        console.log('🎬 Play button clicked');
         if (this.video) {
           this.video.play();
         }
@@ -293,12 +284,17 @@ class IntroVideoSystem {
 
     if (skipBtn) {
       skipBtn.addEventListener('click', () => {
+        console.log('⏭️ Skip button clicked');
         this.closeVideo();
       });
     }
 
     // Atalhos de teclado
-    document.addEventListener('keydown', this.handleKeyboard.bind(this));
+    const keyboardHandler = this.handleKeyboard.bind(this);
+    document.addEventListener('keydown', keyboardHandler);
+
+    // Salvar referência para poder remover depois
+    this.keyboardHandler = keyboardHandler;
   }
 
   // Lidar com teclado
@@ -309,6 +305,7 @@ class IntroVideoSystem {
       case 'Space':
       case 'Enter':
         event.preventDefault();
+        console.log('⌨️ Keyboard play/pause');
         if (this.video) {
           if (this.video.paused) {
             this.video.play();
@@ -319,6 +316,7 @@ class IntroVideoSystem {
         break;
       case 'Escape':
         event.preventDefault();
+        console.log('⌨️ Keyboard escape');
         this.closeVideo();
         break;
     }
@@ -326,20 +324,25 @@ class IntroVideoSystem {
 
   // Lidar com erro do vídeo
   handleVideoError() {
-    console.error('Erro ao carregar vídeo, pulando introdução');
+    console.error('❌ Erro ao carregar vídeo, pulando introdução em 3 segundos...');
     setTimeout(() => {
       this.closeVideo();
-    }, 2000);
+    }, 3000);
   }
 
   // Fechar vídeo
   closeVideo() {
     if (!this.container) return;
 
-    console.log('Closing intro video');
+    console.log('🚪 Closing intro video');
 
     // Marcar como visualizado
     localStorage.setItem('intro-video-shown', 'true');
+
+    // Pausar vídeo
+    if (this.video) {
+      this.video.pause();
+    }
 
     // Fade out
     this.container.classList.remove('show');
@@ -353,27 +356,32 @@ class IntroVideoSystem {
       }
 
       // Remover listeners
-      document.removeEventListener('keydown', this.handleKeyboard.bind(this));
+      if (this.keyboardHandler) {
+        document.removeEventListener('keydown', this.keyboardHandler);
+      }
 
-    }, 800);
+      console.log('✅ Intro video closed and cleaned up');
+    }, 500);
   }
 
   // Resetar para mostrar novamente
   reset() {
     localStorage.removeItem('intro-video-shown');
     this.hasShown = false;
-    console.log('Intro video reset');
+    console.log('🔄 Intro video reset - will show on next visit');
   }
 
   // Mostrar vídeo
   async show() {
-    // Se já foi mostrado, pular
+    console.log('🎬 Attempting to show intro video...');
+
+    // Se já foi mostrado, pular (comentar linha abaixo para sempre mostrar)
     if (this.hasShown) {
-      console.log('Intro video already shown, skipping');
+      console.log('⏭️ Intro video already shown, skipping');
       return;
     }
 
-    console.log('Showing intro video');
+    console.log('🚀 Showing intro video overlay');
 
     // Injetar estilos
     this.injectStyles();
@@ -386,7 +394,7 @@ class IntroVideoSystem {
     this.video = document.getElementById('intro-video-player');
 
     if (!this.video) {
-      console.error('Video element not found');
+      console.error('❌ Video element not found');
       return;
     }
 
@@ -394,47 +402,70 @@ class IntroVideoSystem {
     this.setupVideoEvents(this.video);
     this.setupControls();
 
-    // Mostrar overlay
+    // Mostrar overlay imediatamente
     setTimeout(() => {
       if (this.container) {
         this.container.classList.add('show');
+        console.log('✨ Overlay shown with fade-in effect');
       }
     }, 100);
 
     // Iniciar carregamento
+    console.log('📥 Starting video load...');
     this.video.load();
   }
 }
 
 // Criar instância global
+console.log('🎯 Creating IntroVideoSystem instance...');
 window.introVideoSystem = new IntroVideoSystem();
 
-// Auto-inicialização mais agressiva
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('DOM loaded, initializing intro video');
-  setTimeout(() => {
-    if (window.introVideoSystem) {
-      window.introVideoSystem.show();
-    }
-  }, 200);
-});
+// Forçar reset para teste (comentar em produção)
+localStorage.removeItem('intro-video-shown');
 
-// Fallback para carregamento da janela
+// Auto-inicialização IMEDIATA
+console.log('⚡ Setting up immediate initialization...');
+
+// Função de inicialização
+function initIntroVideo() {
+  console.log('🎬 Initializing intro video...');
+  if (window.introVideoSystem) {
+    window.introVideoSystem.show();
+  } else {
+    console.error('❌ IntroVideoSystem not found!');
+  }
+}
+
+// Múltiplos pontos de entrada para garantir execução
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initIntroVideo);
+} else {
+  // DOM já carregou
+  setTimeout(initIntroVideo, 100);
+}
+
+// Fallback adicional
 window.addEventListener('load', () => {
-  console.log('Window loaded, checking intro video');
+  console.log('🌐 Window loaded, checking intro video...');
   if (window.introVideoSystem && !window.introVideoSystem.container) {
-    setTimeout(() => {
-      window.introVideoSystem.show();
-    }, 100);
+    setTimeout(initIntroVideo, 100);
   }
 });
 
 // Compatibilidade com código existente
 window.introVideo = {
-  show: () => window.introVideoSystem.show(),
-  reset: () => window.introVideoSystem.reset(),
-  skip: () => window.introVideoSystem.closeVideo()
+  show: () => {
+    console.log('🎬 Manual show triggered');
+    return window.introVideoSystem.show();
+  },
+  reset: () => {
+    console.log('🔄 Manual reset triggered');
+    return window.introVideoSystem.reset();
+  },
+  skip: () => {
+    console.log('⏭️ Manual skip triggered');
+    return window.introVideoSystem.closeVideo();
+  }
 };
 
-console.log('Intro Video System loaded successfully');
-// Remover export para compatibilidade
+console.log('✅ Intro Video System loaded successfully with Appwrite URL');
