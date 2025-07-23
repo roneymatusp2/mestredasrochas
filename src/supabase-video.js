@@ -169,4 +169,5 @@ window.uploadVideoToSupabase = async () => {
   }
 };
 
-export default SupabaseVideoManager;
+// Remover export para compatibilidade
+console.log('Supabase Video Manager loaded successfully');

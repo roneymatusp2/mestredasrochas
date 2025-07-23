@@ -1,4 +1,4 @@
-// Sistema de Vídeo de Introdução para Mestre das Rochas - Versão Robusta
+// Sistema de Vídeo de Introdução para Mestre das Rochas - Versão Robusta com Appwrite
 
 class IntroVideoSystem {
   constructor() {
@@ -7,13 +7,16 @@ class IntroVideoSystem {
     this.isPlaying = false;
     this.hasShown = localStorage.getItem('intro-video-shown') === 'true';
     this.videoSources = [
+      // Appwrite URL como primeira opção (mais confiável)
+      'https://nyc.cloud.appwrite.io/v1/storage/buckets/688033d700210f07ca87/files/688033e60016c7562df0/view?project=688033c900351e6b5fa7&mode=admin',
+      // Fallbacks locais
       './public/mestredasrochas_intro.mp4',
       'public/mestredasrochas_intro.mp4',
       '/public/mestredasrochas_intro.mp4'
     ];
     this.currentSourceIndex = 0;
 
-    console.log('IntroVideoSystem initialized');
+    console.log('IntroVideoSystem initialized with Appwrite URL');
 
     // Tentar obter URL do Supabase se disponível
     this.initSupabaseSource();
@@ -162,10 +165,11 @@ class IntroVideoSystem {
 
     overlay.innerHTML = `
       <video class="intro-video-player" id="intro-video-player" preload="metadata" muted>
+        <source src="https://nyc.cloud.appwrite.io/v1/storage/buckets/688033d700210f07ca87/files/688033e60016c7562df0/view?project=688033c900351e6b5fa7&mode=admin" type="video/mp4">
         <source src="./public/mestredasrochas_intro.mp4" type="video/mp4">
         <source src="public/mestredasrochas_intro.mp4" type="video/mp4">
         Seu navegador não suporta reprodução de vídeo HTML5.
-      </video>
+      </source>
       
       <div class="intro-video-loading" id="intro-loading">
         <div class="intro-spinner"></div>
@@ -433,4 +437,4 @@ window.introVideo = {
 };
 
 console.log('Intro Video System loaded successfully');
-export default IntroVideoSystem;
+// Remover export para compatibilidade
