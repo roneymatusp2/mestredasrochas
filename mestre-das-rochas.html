@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Mestre das Rochas – Ônix Suprema</title>
+<style>
+    :root{
+        --bg:#222;--panel:#2f2f2f;--accent:#00c4ff;--txt:#fafafa;
+        --hex:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0 75%,0 25%);
+    }
+    *{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+    body{margin:0;background:var(--bg);color:var(--txt)}
+    h1{text-align:center;margin-top:10px}
+    #ui{max-width:1080px;margin:auto;padding:10px}
+    button{background:var(--panel);color:var(--txt);border:none;
+           padding:8px 12px;margin:4px;cursor:pointer;border-radius:4px}
+    button:hover{background:var(--accent);color:#000}
+    #board{display:grid;grid-template-columns:repeat(7,60px);gap:6px;
+           justify-content:center;margin-top:10px}
+    .hex{width:60px;height:60px;clip-path:var(--hex);background:#444;
+         display:flex;align-items:center;justify-content:center;font-size:14px}
+    .revealed{background:#8a8a8a}
+    .talco{background:#b1b1b1}.quartzo{background:#c4b9ff}
+    .corindo{background:#ff7f7f}.magnetita{background:#555}
+    .hackmanita{background:#ff93ff}
+    #status,#log{background:var(--panel);padding:8px;margin-top:8px;border-radius:4px}
+    #log{height:180px;overflow-y:auto;font-size:13px}
+    #modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;
+           align-items:center;justify-content:center;z-index:5}
+    #modal>div{background:var(--panel);padding:20px;border-radius:6px;max-width:320px}
+</style>
+</head>
+<body>
+<h1>Mestre das Rochas – Versão Online</h1>
+<div id="ui">
+    <!-- escolha de facção -->
+    <div id="modal">
+        <div>
+            <h3>Escolha sua Ordem</h3>
+            <button onclick="pickFaction('Coração Cristalino')">Coração Cristalino</button>
+            <button onclick="pickFaction('Forjadores do Núcleo')">Forjadores do Núcleo</button>
+            <button onclick="pickFaction('Escribas dos Estratos')">Escribas dos Estratos</button>
+            <button onclick="pickFaction('Prospecionistas Gnômicos')">Prospecionistas Gnômicos</button>
+        </div>
+    </div>
+
+    <!-- ações -->
+    <div id="actions" style="display:none;">
+        <button onclick="act('Explorar')">Explorar</button>
+        <button onclick="act('Extrair')">Extrair</button>
+        <button onclick="act('Lapidar')">Lapidar</button>
+        <button onclick="act('Imbuir')">Imbuir Gênio</button>
+        <button onclick="act('Golem')">Comandar Golem</button>
+        <button onclick="act('Vender')">Vender</button>
+        <button onclick="nextPhase()">Próxima fase</button>
+    </div>
+
+    <!-- tabuleiro -->
+    <div id="board"></div>
+
+    <!-- status -->
+    <div id="status"></div>
+
+    <!-- log -->
+    <div id="log"></div>
+</div>
+
+<script>
+//=== CONFIGURAÇÕES BÁSICAS ==================================================
+const Size = 7;                       // lado do grid
+const Mohs  = {Talco:1, Quartzo:7, Corindo:9, Magnetita:6, Hackmanita:6.5};
+const Minerals = Object.keys(Mohs);
+const BaseMarket = {Talco:2, Quartzo:3, Corindo:5, Magnetita:3, Hackmanita:4};
+
+//=== ESTADO DO JOGO =========================================================
+let st = {
+    fac: '', round:1, phase:1, energy:10, pts:0, frag:0, coins:0, golems:0,
+    raw:{Talco:0,Quartzo:0,Corindo:0,Magnetita:0,Hackmanita:0},
+    gems:{Talco:0,Quartzo:0,Corindo:0,Magnetita:0,Hackmanita:0},
+    market:{...BaseMarket}, genios:0, x:3, y:3, revealed:0
+};
+const board = Array.from({length:Size},()=>Array.from({length:Size},()=>'?'));
+
+//=== INICIALIZAÇÃO ==========================================================
+const log = m=>{document.getElementById('log').innerHTML += `<p>${m}</p>`;
+                document.getElementById('log').scrollTop = 1e9;}
+const upd = ()=>{
+    document.getElementById('status').innerHTML =
+        `Ordem: <b>${st.fac||'??'}</b> | Rodada: ${st.round}‑${st.phase} |
+         Energia: ${st.energy} | Pontos: ${st.pts} | Frag: ${st.frag} | Moedas: ${st.coins}<br>
+         Gemas: ${Minerals.map(k=>`${k}:${st.gems[k]}`).join(' | ')}<br>
+         Mercado: ${Minerals.map(k=>`${k}:${st.market[k]}`).join(' | ')}`;
+};
+const renderBoard = ()=>{
+    const g = document.getElementById('board'); g.innerHTML='';
+    for(let y=0;y<Size;y++)for(let x=0;x<Size;x++){
+        const d = document.createElement('div');
+        d.className='hex'; d.onclick=()=>clickHex(x,y);
+        const v=board[y][x];
+        if(v!=='?'){ d.classList.add('revealed'); d.classList.add(
+           v==='T'?'talco':v==='Q'?'quartzo':v==='C'?'corindo':
+           v==='M'?'magnetita':'hackmanita');}
+        if(x===st.x&&y===st.y) d.textContent='👤';
+        else if(v!=='?') d.textContent=v;
+        g.appendChild(d);
+    }
+};
+const pickFaction = f=>{
+    st.fac=f; document.getElementById('modal').style.display='none';
+    document.getElementById('actions').style.display='block';
+    // bônus/fraquezas iniciais
+    if(f==='Forjadores do Núcleo') st.energy+=3;
+    if(f==='Escribas dos Estratos') st.frag+=1;
+    log(`Ordem ${f} escolhida! Boa jornada, aprendiz.`);
+    renderBoard(); upd();
+};
+
+//=== EVENTOS DE TABULEIRO ===================================================
+const clickHex=(x,y)=>{
+    if(st.phase!==1){log('Só é possível explorar na 1ª Fase.');return;}
+    if(Math.abs(st.x-x)+Math.abs(st.y-y)>1){log('Movimento adjacente apenas.');return;}
+    const cost = 1+Math.floor(y/2); // profundidade ~ linha
+    if(st.energy<cost){log('Energia insuficiente.');return;}
+    st.energy-=cost; st.x=x; st.y=y;
+    if(board[y][x]==='?'){ // revelar terreno
+        const res = Minerals[Math.floor(Math.random()*Minerals.length)];
+        board[y][x]=res[0]; st.raw[res]++; st.revealed++;
+        log(`Você revelou ${res} em (${x},${y}).`);
+    }else{log('Local já explorado.');}
+    renderBoard(); upd();
+};
+
+//=== AÇÕES DE JOGADOR =======================================================
+function act(act){
+    if(st.energy<=0){log('Você está exausto!');return;}
+    switch(act){
+        case 'Explorar': log('Use o clique no hex para explorar.');break;
+        case 'Extrair':{
+            const res = Minerals.find(k=>st.raw[k]>0);
+            if(!res){log('Nenhuma rocha bruta disponível.');break;}
+            const c = Math.floor(Math.random()*3);
+            if(st.energy<c){log('Energia insuficiente para extrair.');break;}
+            st.energy-=c; st.raw[res]--;
+            let amt = 1+Math.floor(Math.random()*3);
+            if(st.fac==='Prospecionistas Gnômicos') amt++;
+            st.gems[res]+=amt;
+            log(`Extraiu ${amt} unidade(s) de ${res}.`);
+        }break;
+        case 'Lapidar':{
+            const res = Minerals.find(k=>st.gems[k]>0);
+            if(!res){log('Nenhuma gema para lapidar.');break;}
+            let cost = Math.ceil(Mohs[res]/2);
+            if(st.fac==='Coração Cristalino' && Mohs[res]>=7) cost--;
+            if(st.energy<cost){log('Energia insuficiente.');break;}
+            st.energy-=cost; st.gems[res]--;
+            st.pts+=Mohs[res]; st.frag++;
+            if(res==='Quartzo' && Math.random()>.5){st.pts+=2;log('Cristal fraturado! +2 pts extra.');}
+            log(`Lapidou ${res}. (+${Mohs[res]} pts, +1 fragmento)`);
+        }break;
+        case 'Imbuir':{
+            if(st.frag<3 || !Minerals.some(k=>st.gems[k]>0)){
+                log('Faltam gemas ou fragmentos.');break;}
+            st.frag-=3;
+            const res = Minerals.find(k=>st.gems[k]>0); st.gems[res]--;
+            st.genios++; st.pts+=10;
+            if(st.genios%2===0) st.golems++; // a cada 2 gênios, ganha 1 golem
+            log(`Invocou um Gênio de ${res}! (+10 pts)`);
+        }break;
+        case 'Golem':{
+            if(st.golems<1 || st.frag<1){log('Sem golem livre ou fragmento.');break;}
+            st.golems--; st.frag--; st.pts+=5; log('Golem comandado: área consolidada (+5 pts)');
+        }break;
+        case 'Vender':{
+            const res = Minerals.find(k=>st.gems[k]>0);
+            if(!res){log('Nada para vender.');break;}
+            st.gems[res]--; st.coins+=st.market[res];
+            st.market[res]=Math.max(1,st.market[res]-1);
+            log(`Vendeu ${res} por ${st.market[res]} moedas (preço reduzido).`);
+        }break;
+    }
+    upd(); checkEnd();
+}
+
+//=== PROGRESSÃO DE RODADA & EVENTOS ========================================
+const events = [
+ 'Terremoto súbito! Todos perdem 1 energia.',
+ 'Veio rico descoberto: cada jogador recebe 1 Quartzo bruto.',
+ 'Eco‑Golem sabota mercado: preços +1 para todos.'
+];
+function nextPhase(){
+    st.phase++;
+    if(st.phase>5){ st.phase=1; st.round++;
+        // evento
+        const ev = events[Math.floor(Math.random()*events.length)];
+        log(`<i>${ev}</i>`);
+        if(ev.startsWith('Terremoto')) st.energy=Math.max(0,st.energy-1);
+        if(ev.startsWith('Veio')) st.raw.Quartzo++;
+        if(ev.startsWith('Eco')) Minerals.forEach(k=>st.market[k]++);
+        // Eco‑Golem simplificado
+        st.pts-=0; // placeholder se desejar lógica mais profunda
+        st.energy=Math.min(10,st.energy+5); // descanso
+    }
+    upd(); checkEnd();
+}
+
+//=== FIM DE JOGO ============================================================
+function checkEnd(){
+    const cond = [st.revealed>=10, st.genios>=3, st.round>=6];
+    if(cond.filter(Boolean).length>=2){ // 2 de 3 condições
+        st.pts+=st.coins*2;
+        log(`<b>Fim de jogo!</b> Pontuação final: ${st.pts}`);
+        document.getElementById('actions').style.display='none';
+    }
+}
+
+//=== TECLAS DE ATALHO (qualquer ação por número) ============================
+document.addEventListener('keydown',e=>{
+    const map={1:'Explorar',2:'Extrair',3:'Lapidar',4:'Imbuir',5:'Golem',6:'Vender',0:'next'};
+    if(map[e.key]) map[e.key]==='next'?nextPhase():act(map[e.key]);
+});
+
+//=== BOOT ===================================================================
+log('Prepare‑se: os segredos da terra aguardam seu comando…');
+</script>
+</body>
+</html>

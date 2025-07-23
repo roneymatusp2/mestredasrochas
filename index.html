@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Mestre das Rochas - O Chamado dos Gênios. Um jogo de estratégia épico baseado em geologia real e fantasia elemental.">
+    <meta name="keywords" content="jogo, estratégia, geologia, minerais, gênios, hexagonal, tabuleiro">
+    <meta name="author" content="Mohamed Hage, Marcos Piniesky, Roney Nascimento">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mestre-das-rochas.netlify.app/">
+    <meta property="og:title" content="Mestre das Rochas - O Chamado dos Gênios">
+    <meta property="og:description" content="Explore as profundezas da terra, domine os minerais e invoque gênios poderosos neste épico jogo de estratégia.">
+    <meta property="og:image" content="https://mestre-das-rochas.netlify.app/assets/og-image.jpg">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://mestre-das-rochas.netlify.app/">
+    <meta property="twitter:title" content="Mestre das Rochas - O Chamado dos Gênios">
+    <meta property="twitter:description" content="Explore as profundezas da terra, domine os minerais e invoque gênios poderosos neste épico jogo de estratégia.">
+    <meta property="twitter:image" content="https://mestre-das-rochas.netlify.app/assets/og-image.jpg">
+
+    <title>Mestre das Rochas - O Chamado dos Gênios | Versão Ônix Suprema</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- External Libraries -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="src/styles.css">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a1a2e">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="gem-loader">
+                <div class="gem gem-1"></div>
+                <div class="gem gem-2"></div>
+                <div class="gem gem-3"></div>
+                <div class="gem gem-4"></div>
+                <div class="gem gem-5"></div>
+            </div>
+            <h2>Carregando os Segredos da Terra...</h2>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Particles Background -->
+    <div id="particles-js"></div>
+
+    <!-- Main Game Container -->
+    <div id="game-container" class="game-container">
+        <!-- Header -->
+        <header class="game-header">
+            <div class="header-content">
+                <h1 class="game-title animate__animated animate__fadeInDown">
+                    <i class="fas fa-gem"></i>
+                    Mestre das Rochas
+                    <span class="subtitle">O Chamado dos Gênios</span>
+                </h1>
+                <div class="version-badge">Versão Ônix Suprema</div>
+            </div>
+            <div class="header-buttons">
+                <button class="btn btn-multiplayer" onclick="window.lobby.show()">
+                    <i class="fas fa-globe"></i>
+                    Jogar Online
+                </button>
+                <button class="btn btn-settings" onclick="showSettings()">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Faction Selection Modal -->
+        <div id="faction-modal" class="modal-overlay active">
+            <div class="modal-content faction-selection animate__animated animate__zoomIn">
+                <h2><i class="fas fa-scroll"></i> Escolha sua Ordem Mística</h2>
+                <p class="modal-description">Cada Ordem possui habilidades únicas que moldarão sua jornada nas profundezas da terra.</p>
+                
+                <div class="factions-grid">
+                    <div class="faction-card" data-faction="Coração Cristalino">
+                        <div class="faction-icon">💎</div>
+                        <h3>Coração Cristalino</h3>
+                        <p class="faction-ability">Mestres da lapidação de pedras duras</p>
+                        <div class="faction-stats">
+                            <span class="stat-bonus">+Lapidação</span>
+                            <span class="stat-penalty">-Extração</span>
+                        </div>
+                    </div>
+                    
+                    <div class="faction-card" data-faction="Forjadores do Núcleo">
+                        <div class="faction-icon">🔥</div>
+                        <h3>Forjadores do Núcleo</h3>
+                        <p class="faction-ability">Dominam terrenos vulcânicos e golems</p>
+                        <div class="faction-stats">
+                            <span class="stat-bonus">+Golems</span>
+                            <span class="stat-penalty">-Lapidação</span>
+                        </div>
+                    </div>
+                    
+                    <div class="faction-card" data-faction="Escribas dos Estratos">
+                        <div class="faction-icon">📜</div>
+                        <h3>Escribas dos Estratos</h3>
+                        <p class="faction-ability">Guardiões do conhecimento ancestral</p>
+                        <div class="faction-stats">
+                            <span class="stat-bonus">+Conhecimento</span>
+                            <span class="stat-penalty">-Energia</span>
+                        </div>
+                    </div>
+                    
+                    <div class="faction-card" data-faction="Prospecionistas Gnômicos">
+                        <div class="faction-icon">⛏️</div>
+                        <h3>Prospecionistas Gnômicos</h3>
+                        <p class="faction-ability">Especialistas em extração eficiente</p>
+                        <div class="faction-stats">
+                            <span class="stat-bonus">+Extração</span>
+                            <span class="stat-penalty">-Valor</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Interface -->
+        <div id="game-interface" class="game-interface" style="display: none;">
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <div class="actions-section">
+                    <h3><i class="fas fa-cogs"></i> Ações</h3>
+                    <div class="action-buttons">
+                        <button class="action-btn" data-action="explore" data-tooltip="Explore novos territórios (Tecla 1)">
+                            <i class="fas fa-search"></i>
+                            <span>Explorar</span>
+                            <kbd>1</kbd>
+                        </button>
+                        <button class="action-btn" data-action="extract" data-tooltip="Extraia minerais das rochas (Tecla 2)">
+                            <i class="fas fa-hammer"></i>
+                            <span>Extrair</span>
+                            <kbd>2</kbd>
+                        </button>
+                        <button class="action-btn" data-action="cut" data-tooltip="Lapide gemas brutas (Tecla 3)">
+                            <i class="fas fa-gem"></i>
+                            <span>Lapidar</span>
+                            <kbd>3</kbd>
+                        </button>
+                        <button class="action-btn" data-action="imbue" data-tooltip="Invoque gênios poderosos (Tecla 4)">
+                            <i class="fas fa-magic"></i>
+                            <span>Imbuir</span>
+                            <kbd>4</kbd>
+                        </button>
+                        <button class="action-btn" data-action="golem" data-tooltip="Comande seus golems (Tecla 5)">
+                            <i class="fas fa-robot"></i>
+                            <span>Golem</span>
+                            <kbd>5</kbd>
+                        </button>
+                        <button class="action-btn" data-action="trade" data-tooltip="Negocie no mercado (Tecla 6)">
+                            <i class="fas fa-coins"></i>
+                            <span>Vender</span>
+                            <kbd>6</kbd>
+                        </button>
+                    </div>
+                    <button class="phase-btn" id="next-phase" data-tooltip="Avance para a próxima fase (Tecla 0)">
+                        <i class="fas fa-forward"></i>
+                        <span>Próxima Fase</span>
+                        <kbd>0</kbd>
+                    </button>
+                </div>
+
+                <!-- Game Status -->
+                <div class="status-section">
+                    <h3><i class="fas fa-chart-line"></i> Status</h3>
+                    <div class="status-grid">
+                        <div class="status-item">
+                            <i class="fas fa-scroll"></i>
+                            <span class="status-label">Ordem:</span>
+                            <span class="status-value" id="faction-name">-</span>
+                        </div>
+                        <div class="status-item">
+                            <i class="fas fa-clock"></i>
+                            <span class="status-label">Rodada:</span>
+                            <span class="status-value" id="round-phase">1-1</span>
+                        </div>
+                        <div class="status-item">
+                            <i class="fas fa-bolt"></i>
+                            <span class="status-label">Energia:</span>
+                            <span class="status-value energy" id="energy">10</span>
+                        </div>
+                        <div class="status-item">
+                            <i class="fas fa-star"></i>
+                            <span class="status-label">Pontos:</span>
+                            <span class="status-value points" id="points">0</span>
+                        </div>
+                        <div class="status-item">
+                            <i class="fas fa-coins"></i>
+                            <span class="status-label">Moedas:</span>
+                            <span class="status-value coins" id="coins">0</span>
+                        </div>
+                        <div class="status-item">
+                            <i class="fas fa-puzzle-piece"></i>
+                            <span class="status-label">Fragmentos:</span>
+                            <span class="status-value fragments" id="fragments">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resources -->
+                <div class="resources-section">
+                    <h3><i class="fas fa-gem"></i> Gemas</h3>
+                    <div class="gems-grid" id="gems-display">
+                        <!-- Gems will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Market -->
+                <div class="market-section">
+                    <h3><i class="fas fa-store"></i> Mercado</h3>
+                    <div class="market-grid" id="market-display">
+                        <!-- Market prices will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Board -->
+            <div class="board-container">
+                <div class="board-header">
+                    <h3><i class="fas fa-map"></i> Tabuleiro Hexagonal</h3>
+                    <div class="board-controls">
+                        <button class="board-control-btn" id="zoom-in" data-tooltip="Aumentar zoom">
+                            <i class="fas fa-search-plus"></i>
+                        </button>
+                        <button class="board-control-btn" id="zoom-out" data-tooltip="Diminuir zoom">
+                            <i class="fas fa-search-minus"></i>
+                        </button>
+                        <button class="board-control-btn" id="center-view" data-tooltip="Centralizar visão">
+                            <i class="fas fa-crosshairs"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="board-wrapper">
+                    <div id="hex-board" class="hex-board">
+                        <!-- Hexagonal board will be generated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Event Log -->
+            <div class="log-container">
+                <div class="log-header">
+                    <h3><i class="fas fa-scroll"></i> Crônicas da Terra</h3>
+                    <div class="log-controls">
+                        <button class="log-control-btn" id="clear-log" data-tooltip="Limpar log">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <button class="log-control-btn" id="export-log" data-tooltip="Exportar log">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="event-log" class="event-log">
+                    <div class="log-entry welcome">
+                        <i class="fas fa-star"></i>
+                        <span>Bem-vindo às profundezas da terra, jovem aprendiz. Os segredos minerais aguardam sua descoberta...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over Modal -->
+        <div id="game-over-modal" class="modal-overlay">
+            <div class="modal-content game-over animate__animated animate__zoomIn">
+                <h2><i class="fas fa-trophy"></i> Fim de Jogo!</h2>
+                <div id="final-score" class="final-score">
+                    <!-- Final score will be populated by JavaScript -->
+                </div>
+                <div class="game-over-actions">
+                    <button class="btn btn-primary" id="play-again">
+                        <i class="fas fa-redo"></i>
+                        Jogar Novamente
+                    </button>
+                    <button class="btn btn-secondary" id="share-score">
+                        <i class="fas fa-share"></i>
+                        Compartilhar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="modal-overlay">
+            <div class="modal-content settings animate__animated animate__slideInDown">
+                <h2><i class="fas fa-cog"></i> Configurações</h2>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <label for="volume-slider">Volume da Música:</label>
+                        <input type="range" id="volume-slider" min="0" max="100" value="50">
+                    </div>
+                    <div class="setting-item">
+                        <label for="sfx-volume">Volume dos Efeitos:</label>
+                        <input type="range" id="sfx-volume" min="0" max="100" value="70">
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="particles-toggle" checked>
+                            Efeitos de Partículas
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="animations-toggle" checked>
+                            Animações
+                        </label>
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="close-settings">Fechar</button>
+            </div>
+        </div>
+
+        <!-- Floating Action Button -->
+        <div class="fab-container">
+            <button class="fab" id="settings-fab" data-tooltip="Configurações">
+                <i class="fas fa-cog"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="game-footer">
+        <div class="footer-content">
+            <div class="creators">
+                <h4><i class="fas fa-users"></i> Criadores</h4>
+                <div class="creator-list">
+                    <div class="creator">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Mohamed Hage</span>
+                    </div>
+                    <div class="creator">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Marcos Piniesky</span>
+                    </div>
+                    <div class="creator">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Roney Nascimento</span>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-info">
+                <p>&copy; 2024 Mestre das Rochas - O Chamado dos Gênios</p>
+                <p>Versão Ônix Suprema | Todos os direitos reservados</p>
+                <div class="social-links">
+                    <a href="#" class="social-link" data-tooltip="GitHub">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <a href="#" class="social-link" data-tooltip="Discord">
+                        <i class="fab fa-discord"></i>
+                    </a>
+                    <a href="#" class="social-link" data-tooltip="Twitter">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
+    <script type="module" src="src/multiplayer.js"></script>
+    <script type="module" src="src/lobby.js"></script>
+    <script src="src/game.js"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('SW registered: ', registration))
+                    .catch(registrationError => console.log('SW registration failed: ', registrationError));
+            });
+        }
+    </script>
+</body>
+</html>

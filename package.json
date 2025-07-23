@@ -1,0 +1,57 @@
+{
+  "name": "mestre-das-rochas",
+  "version": "1.0.0",
+  "description": "Mestre das Rochas - O Chamado dos Gênios - Versão Ônix Suprema",
+  "main": "index.html",
+  "scripts": {
+    "start": "live-server --port=3000 --open=/",
+    "dev": "live-server --port=3000 --open=/",
+    "build": "node build.js",
+    "build:old": "npm run minify-css && npm run minify-js",
+    "build:icons": "node assets/generate-icons.js",
+    "minify-css": "cleancss -o dist/styles.min.css src/styles.css",
+    "minify-js": "uglifyjs src/game.js -o dist/game.min.js",
+    "deploy": "netlify deploy --prod --dir=dist",
+    "deploy:preview": "netlify deploy --dir=dist",
+    "test": "jest",
+    "lint": "eslint src/**/*.js"
+  },
+  "keywords": [
+    "board-game",
+    "strategy",
+    "geology",
+    "fantasy",
+    "hexagonal",
+    "minerals",
+    "genies"
+  ],
+  "authors": [
+    "Mohamed Hage",
+    "Marcos Piniesky",
+    "Roney Nascimento"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "clean-css-cli": "^5.6.2",
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "live-server": "^1.2.2",
+    "netlify-cli": "^17.10.1",
+    "sharp": "^0.34.3",
+    "uglify-js": "^3.17.4"
+  },
+  "dependencies": {
+    "animate.css": "^4.1.1",
+    "howler": "^2.2.4",
+    "particles.js": "^2.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/roneymatusp2/mestre-das-rochas.git"
+  },
+  "homepage": "https://mestre-das-rochas.netlify.app",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}
