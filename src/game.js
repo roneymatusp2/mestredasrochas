@@ -555,7 +555,7 @@ class MestreDasRochas {
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.setAttribute('viewBox', '0 0 650 550');
         svg.setAttribute('width', '100%');
-        svg.setAttribute('height', 'auto');
+        svg.style.height = 'auto';
         svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
         svg.style.maxWidth = '650px';
         svg.style.maxHeight = '550px';
@@ -1070,12 +1070,7 @@ class AudioManager {
 // ===== INITIALIZE GAME =====
 let game;
 
-document.addEventListener('DOMContentLoaded', async () => {
-    // Mostrar vídeo de introdução se disponível
-    if (window.introVideo) {
-        await window.introVideo.show();
-    }
-    
-    // Iniciar o jogo
+document.addEventListener('DOMContentLoaded', () => {
+    // Iniciar o jogo (vídeo será mostrado automaticamente pelo intro-video-simple.js)
     game = new MestreDasRochas();
 });

@@ -330,7 +330,7 @@
                         </label>
                     </div>
                     <div class="setting-item">
-                        <button class="btn btn-secondary" onclick="if(window.introVideo) { window.introVideo.reset(); window.introVideo.show(); }">
+                        <button class="btn btn-secondary" onclick="if(window.introVideo) { window.introVideo.reset(); location.reload(); }">
                             <i class="fas fa-play"></i> Ver Introdução Novamente
                         </button>
                     </div>
@@ -410,10 +410,8 @@
 
         checkVideoFile();
     </script>
-    <!-- Sistema Supabase para backup do vídeo -->
-    <script src="src/supabase-video.js"></script>
-    <!-- Sistema principal de vídeo -->
-    <script src="src/intro-video.js"></script>
+    <!-- Sistema simplificado de vídeo com Appwrite -->
+    <script src="src/intro-video-simple.js"></script>
     <script type="module" src="src/multiplayer.js"></script>
     <script type="module" src="src/lobby.js"></script>
     <script src="src/game.js"></script>
