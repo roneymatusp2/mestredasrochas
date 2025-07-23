@@ -388,7 +388,31 @@
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
-    <!-- Carregar vídeo de introdução primeiro -->
+    <!-- Sistema de vídeo de introdução - PRIORIDADE MÁXIMA -->
+    <script>
+        // Debug e forçar carregamento do vídeo
+        console.log('Starting intro video system...');
+
+        // Resetar localStorage para teste (descomente para forçar o vídeo)
+        localStorage.removeItem('intro-video-shown');
+
+        // Verificar se arquivo existe
+        function checkVideoFile() {
+            const video = document.createElement('video');
+            video.src = './public/mestredasrochas_intro.mp4';
+            video.addEventListener('loadedmetadata', () => {
+                console.log('✓ Vídeo encontrado e pode ser carregado');
+            });
+            video.addEventListener('error', () => {
+                console.error('✗ Erro ao carregar vídeo local');
+            });
+        }
+
+        checkVideoFile();
+    </script>
+    <!-- Sistema Supabase para backup do vídeo -->
+    <script src="src/supabase-video.js"></script>
+    <!-- Sistema principal de vídeo -->
     <script src="src/intro-video.js"></script>
     <script type="module" src="src/multiplayer.js"></script>
     <script type="module" src="src/lobby.js"></script>

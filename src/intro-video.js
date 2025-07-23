@@ -1,230 +1,436 @@
-// Sistema de Vídeo de Introdução para Mestre das Rochas
+// Sistema de Vídeo de Introdução para Mestre das Rochas - Versão Robusta
 
-class IntroVideo {
+class IntroVideoSystem {
   constructor() {
     this.container = null;
     this.video = null;
-    this.hasPlayed = localStorage.getItem('intro-played') === 'true';
+    this.isPlaying = false;
+    this.hasShown = localStorage.getItem('intro-video-shown') === 'true';
+    this.videoSources = [
+      './public/mestredasrochas_intro.mp4',
+      'public/mestredasrochas_intro.mp4',
+      '/public/mestredasrochas_intro.mp4'
+    ];
+    this.currentSourceIndex = 0;
+
+    console.log('IntroVideoSystem initialized');
+
+    // Tentar obter URL do Supabase se disponível
+    this.initSupabaseSource();
   }
 
-  // Criar HTML do vídeo
-  createHTML() {
-    return `
-      <div id="intro-video-container" class="intro-video-container">
-        <video id="intro-video" class="intro-video" autoplay muted preload="auto">
-          <source src="./public/mestredasrochas_intro.mp4" type="video/mp4">
-          Seu navegador não suporta vídeos HTML5.
-        </video>
-        <div class="intro-controls">
-          <button class="skip-intro-btn" onclick="window.introVideo.skip()">
-            Pular Introdução
-          </button>
-        </div>
-      </div>
-    `;
+  // Inicializar fonte do Supabase
+  async initSupabaseSource() {
+    try {
+      if (window.supabaseVideoManager) {
+        const supabaseUrl = window.supabaseVideoManager.getVideoUrl();
+        if (supabaseUrl) {
+          this.videoSources.unshift(supabaseUrl);
+          console.log('Supabase video URL added:', supabaseUrl);
+        }
+      }
+    } catch (error) {
+      console.warn('Could not get Supabase video URL:', error);
+    }
   }
 
-  // Criar estilos CSS
-  createStyles() {
+  // Criar estilos CSS dinâmicos
+  injectStyles() {
+    if (document.getElementById('intro-video-styles')) return;
+
     const style = document.createElement('style');
+    style.id = 'intro-video-styles';
     style.textContent = `
-      .intro-video-container {
+      .intro-video-overlay {
         position: fixed;
         top: 0;
         left: 0;
-        width: 100%;
-        height: 100%;
+        width: 100vw;
+        height: 100vh;
         background: #000;
-        z-index: 9999;
+        z-index: 99999;
         display: flex;
         align-items: center;
         justify-content: center;
         opacity: 0;
-        transition: opacity 0.5s ease;
+        visibility: hidden;
+        transition: opacity 0.8s ease, visibility 0.8s ease;
       }
 
-      .intro-video-container.active {
+      .intro-video-overlay.show {
         opacity: 1;
+        visibility: visible;
       }
 
-      .intro-video {
+      .intro-video-player {
         width: 100%;
         height: 100%;
         object-fit: contain;
+        background: #000;
       }
 
-      .intro-controls {
+      .intro-video-controls {
         position: absolute;
-        bottom: 50px;
-        right: 50px;
-        z-index: 10;
+        bottom: 30px;
+        right: 30px;
+        z-index: 100001;
+        display: flex;
+        gap: 15px;
       }
 
-      .skip-intro-btn {
-        background: rgba(255, 255, 255, 0.1);
-        border: 2px solid rgba(255, 255, 255, 0.3);
+      .intro-btn {
+        background: rgba(255, 255, 255, 0.15);
+        border: 2px solid rgba(255, 255, 255, 0.4);
         color: white;
-        padding: 12px 24px;
+        padding: 12px 20px;
         border-radius: 8px;
-        font-size: 16px;
+        font-size: 14px;
+        font-weight: 600;
         cursor: pointer;
-        transition: all 0.3s;
+        transition: all 0.3s ease;
         backdrop-filter: blur(10px);
         font-family: 'Inter', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
       }
 
-      .skip-intro-btn:hover {
-        background: rgba(255, 255, 255, 0.2);
-        border-color: rgba(255, 255, 255, 0.5);
+      .intro-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.6);
         transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      }
+
+      .intro-btn.play-btn {
+        background: rgba(0, 255, 100, 0.2);
+        border-color: rgba(0, 255, 100, 0.5);
+      }
+
+      .intro-btn.play-btn:hover {
+        background: rgba(0, 255, 100, 0.3);
+        border-color: rgba(0, 255, 100, 0.7);
+      }
+
+      .intro-video-loading {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 18px;
+        font-family: 'Inter', sans-serif;
+        text-align: center;
+      }
+
+      .intro-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-top: 3px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 15px;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
       }
 
       @media (max-width: 768px) {
-        .intro-controls {
+        .intro-video-controls {
           bottom: 20px;
           right: 20px;
+          flex-direction: column;
         }
-
-        .skip-intro-btn {
-          padding: 10px 20px;
-          font-size: 14px;
+        
+        .intro-btn {
+          padding: 10px 16px;
+          font-size: 12px;
         }
       }
     `;
     document.head.appendChild(style);
+    console.log('Intro video styles injected');
   }
 
-  // Mostrar vídeo
-  async show() {
-    // Se já foi exibido e usuário não quer ver novamente
-    if (this.hasPlayed && !this.shouldShowAgain()) {
-      return Promise.resolve();
-    }
+  // Criar HTML do overlay
+  createOverlay() {
+    const overlay = document.createElement('div');
+    overlay.className = 'intro-video-overlay';
+    overlay.id = 'intro-video-overlay';
 
-    return new Promise((resolve) => {
-      // Criar estilos
-      this.createStyles();
+    overlay.innerHTML = `
+      <video class="intro-video-player" id="intro-video-player" preload="metadata" muted>
+        <source src="./public/mestredasrochas_intro.mp4" type="video/mp4">
+        <source src="public/mestredasrochas_intro.mp4" type="video/mp4">
+        Seu navegador não suporta reprodução de vídeo HTML5.
+      </video>
+      
+      <div class="intro-video-loading" id="intro-loading">
+        <div class="intro-spinner"></div>
+        <div>Carregando vídeo de introdução...</div>
+      </div>
+      
+      <div class="intro-video-controls" id="intro-controls" style="display: none;">
+        <button class="intro-btn play-btn" id="intro-play-btn">
+          ▶ REPRODUZIR
+        </button>
+        <button class="intro-btn" id="intro-skip-btn">
+          ⏭ PULAR
+        </button>
+      </div>
+    `;
 
-      // Criar container
-      this.container = document.createElement('div');
-      this.container.innerHTML = this.createHTML();
-      document.body.appendChild(this.container);
+    return overlay;
+  }
 
-      // Obter referências
-      const videoContainer = document.getElementById('intro-video-container');
-      this.video = document.getElementById('intro-video');
+  // Configurar eventos do vídeo
+  setupVideoEvents(video) {
+    video.addEventListener('loadstart', () => {
+      console.log('Video loading started');
+    });
 
-      // Configurar eventos do vídeo
-      this.video.addEventListener('loadeddata', () => {
-        videoContainer.classList.add('active');
-      });
+    video.addEventListener('loadedmetadata', () => {
+      console.log('Video metadata loaded');
+      this.hideLoading();
+      this.showControls();
+    });
 
-      this.video.addEventListener('ended', () => {
-        this.finish(resolve);
-      });
+    video.addEventListener('canplay', () => {
+      console.log('Video can start playing');
+      this.tryAutoplay();
+    });
 
-      this.video.addEventListener('error', (e) => {
-        console.error('Erro ao carregar vídeo:', e);
-        this.finish(resolve);
-      });
+    video.addEventListener('play', () => {
+      console.log('Video started playing');
+      this.isPlaying = true;
+      this.hideControls();
+    });
 
-      // Tentar reproduzir o vídeo
-      this.video.play().catch((error) => {
-        console.warn('Autoplay bloqueado, aguardando interação do usuário:', error);
-        this.showPlayButton(resolve);
-      });
+    video.addEventListener('pause', () => {
+      console.log('Video paused');
+      this.isPlaying = false;
+      this.showControls();
+    });
 
-      // Escutar tecla ESC para pular
-      document.addEventListener('keydown', this.handleKeyPress.bind(this));
+    video.addEventListener('ended', () => {
+      console.log('Video ended');
+      this.closeVideo();
+    });
+
+    video.addEventListener('error', (e) => {
+      console.error('Video error:', e);
+      this.handleVideoError();
     });
   }
 
-  // Mostrar botão de play quando autoplay é bloqueado
-  showPlayButton(resolve) {
-    const playButton = document.createElement('button');
-    playButton.className = 'intro-play-btn';
-    playButton.innerHTML = '<i class="fas fa-play"></i> Iniciar Vídeo';
-    playButton.style.cssText = `
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(255, 255, 255, 0.9);
-      border: none;
-      padding: 20px 40px;
-      border-radius: 50px;
-      font-size: 18px;
-      cursor: pointer;
-      z-index: 11;
-      font-family: 'Inter', sans-serif;
-      font-weight: 600;
-    `;
+  // Tentar reprodução automática
+  async tryAutoplay() {
+    if (!this.video) return;
 
-    playButton.onclick = () => {
-      this.video.play();
-      playButton.remove();
-    };
-
-    this.container.appendChild(playButton);
-  }
-
-  // Verificar se deve mostrar novamente
-  shouldShowAgain() {
-    return false; // Por padrão, só mostra uma vez
-  }
-
-  // Lidar com teclas pressionadas
-  handleKeyPress(event) {
-    if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      this.skip();
+    try {
+      await this.video.play();
+      console.log('Autoplay successful');
+    } catch (error) {
+      console.warn('Autoplay blocked:', error);
+      this.showPlayButton();
     }
   }
 
-  // Pular introdução
-  skip() {
-    if (this.video) {
-      this.video.pause();
+  // Mostrar botão de play
+  showPlayButton() {
+    const playBtn = document.getElementById('intro-play-btn');
+    const controls = document.getElementById('intro-controls');
+
+    if (playBtn && controls) {
+      controls.style.display = 'flex';
+      playBtn.style.display = 'block';
+      playBtn.textContent = '▶ CLIQUE PARA ASSISTIR';
     }
-    this.finish();
   }
 
-  // Finalizar vídeo
-  finish(resolve) {
-    if (this.container) {
-      this.container.style.opacity = '0';
-      setTimeout(() => {
-        if (this.container && this.container.parentNode) {
-          this.container.parentNode.removeChild(this.container);
+  // Esconder loading
+  hideLoading() {
+    const loading = document.getElementById('intro-loading');
+    if (loading) {
+      loading.style.display = 'none';
+    }
+  }
+
+  // Mostrar controles
+  showControls() {
+    const controls = document.getElementById('intro-controls');
+    if (controls && !this.isPlaying) {
+      controls.style.display = 'flex';
+    }
+  }
+
+  // Esconder controles
+  hideControls() {
+    const controls = document.getElementById('intro-controls');
+    if (controls) {
+      controls.style.display = 'none';
+    }
+  }
+
+  // Configurar controles
+  setupControls() {
+    const playBtn = document.getElementById('intro-play-btn');
+    const skipBtn = document.getElementById('intro-skip-btn');
+
+    if (playBtn) {
+      playBtn.addEventListener('click', () => {
+        if (this.video) {
+          this.video.play();
         }
-      }, 500);
+      });
     }
 
-    // Marcar como reproduzido
-    localStorage.setItem('intro-played', 'true');
+    if (skipBtn) {
+      skipBtn.addEventListener('click', () => {
+        this.closeVideo();
+      });
+    }
 
-    // Remover listener de teclas
-    document.removeEventListener('keydown', this.handleKeyPress);
+    // Atalhos de teclado
+    document.addEventListener('keydown', this.handleKeyboard.bind(this));
+  }
 
-    if (resolve) resolve();
+  // Lidar com teclado
+  handleKeyboard(event) {
+    if (!this.container) return;
+
+    switch(event.code) {
+      case 'Space':
+      case 'Enter':
+        event.preventDefault();
+        if (this.video) {
+          if (this.video.paused) {
+            this.video.play();
+          } else {
+            this.video.pause();
+          }
+        }
+        break;
+      case 'Escape':
+        event.preventDefault();
+        this.closeVideo();
+        break;
+    }
+  }
+
+  // Lidar com erro do vídeo
+  handleVideoError() {
+    console.error('Erro ao carregar vídeo, pulando introdução');
+    setTimeout(() => {
+      this.closeVideo();
+    }, 2000);
+  }
+
+  // Fechar vídeo
+  closeVideo() {
+    if (!this.container) return;
+
+    console.log('Closing intro video');
+
+    // Marcar como visualizado
+    localStorage.setItem('intro-video-shown', 'true');
+
+    // Fade out
+    this.container.classList.remove('show');
+
+    // Remover após animação
+    setTimeout(() => {
+      if (this.container && this.container.parentNode) {
+        this.container.parentNode.removeChild(this.container);
+        this.container = null;
+        this.video = null;
+      }
+
+      // Remover listeners
+      document.removeEventListener('keydown', this.handleKeyboard.bind(this));
+
+    }, 800);
   }
 
   // Resetar para mostrar novamente
   reset() {
-    localStorage.removeItem('intro-played');
-    this.hasPlayed = false;
+    localStorage.removeItem('intro-video-shown');
+    this.hasShown = false;
+    console.log('Intro video reset');
+  }
+
+  // Mostrar vídeo
+  async show() {
+    // Se já foi mostrado, pular
+    if (this.hasShown) {
+      console.log('Intro video already shown, skipping');
+      return;
+    }
+
+    console.log('Showing intro video');
+
+    // Injetar estilos
+    this.injectStyles();
+
+    // Criar overlay
+    this.container = this.createOverlay();
+    document.body.appendChild(this.container);
+
+    // Obter referência do vídeo
+    this.video = document.getElementById('intro-video-player');
+
+    if (!this.video) {
+      console.error('Video element not found');
+      return;
+    }
+
+    // Configurar eventos
+    this.setupVideoEvents(this.video);
+    this.setupControls();
+
+    // Mostrar overlay
+    setTimeout(() => {
+      if (this.container) {
+        this.container.classList.add('show');
+      }
+    }, 100);
+
+    // Iniciar carregamento
+    this.video.load();
   }
 }
 
 // Criar instância global
-window.introVideo = new IntroVideo();
+window.introVideoSystem = new IntroVideoSystem();
 
-// Inicializar quando o DOM estiver pronto
+// Auto-inicialização mais agressiva
 document.addEventListener('DOMContentLoaded', () => {
-  // Aguardar um breve momento para garantir que tudo carregou
+  console.log('DOM loaded, initializing intro video');
   setTimeout(() => {
-    window.introVideo.show();
-  }, 500);
+    if (window.introVideoSystem) {
+      window.introVideoSystem.show();
+    }
+  }, 200);
 });
 
-export default IntroVideo;
+// Fallback para carregamento da janela
+window.addEventListener('load', () => {
+  console.log('Window loaded, checking intro video');
+  if (window.introVideoSystem && !window.introVideoSystem.container) {
+    setTimeout(() => {
+      window.introVideoSystem.show();
+    }, 100);
+  }
+});
+
+// Compatibilidade com código existente
+window.introVideo = {
+  show: () => window.introVideoSystem.show(),
+  reset: () => window.introVideoSystem.reset(),
+  skip: () => window.introVideoSystem.closeVideo()
+};
+
+console.log('Intro Video System loaded successfully');
+export default IntroVideoSystem;
