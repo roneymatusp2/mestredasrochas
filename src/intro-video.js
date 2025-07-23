@@ -1,6 +1,6 @@
 // Sistema de Vídeo de Introdução para Mestre das Rochas
 
-export class IntroVideo {
+class IntroVideo {
   constructor() {
     this.container = null;
     this.video = null;
@@ -11,12 +11,12 @@ export class IntroVideo {
   createHTML() {
     return `
       <div id="intro-video-container" class="intro-video-container">
-        <video id="intro-video" class="intro-video" autoplay>
-          <source src="public/mestredasrochas_intro.mp4" type="video/mp4">
+        <video id="intro-video" class="intro-video" autoplay muted preload="auto">
+          <source src="./public/mestredasrochas_intro.mp4" type="video/mp4">
           Seu navegador não suporta vídeos HTML5.
         </video>
         <div class="intro-controls">
-          <button class="skip-intro-btn" onclick="introVideo.skip()">
+          <button class="skip-intro-btn" onclick="window.introVideo.skip()">
             Pular Introdução
           </button>
         </div>
@@ -70,6 +70,7 @@ export class IntroVideo {
         cursor: pointer;
         transition: all 0.3s;
         backdrop-filter: blur(10px);
+        font-family: 'Inter', sans-serif;
       }
 
       .skip-intro-btn:hover {
@@ -101,76 +102,116 @@ export class IntroVideo {
     }
 
     return new Promise((resolve) => {
-      // Criar container
-      const div = document.createElement('div');
-      div.innerHTML = this.createHTML();
-      document.body.appendChild(div);
-      
-      this.container = document.getElementById('intro-video-container');
-      this.video = document.getElementById('intro-video');
-      
-      // Adicionar estilos
+      // Criar estilos
       this.createStyles();
-      
-      // Configurar eventos
+
+      // Criar container
+      this.container = document.createElement('div');
+      this.container.innerHTML = this.createHTML();
+      document.body.appendChild(this.container);
+
+      // Obter referências
+      const videoContainer = document.getElementById('intro-video-container');
+      this.video = document.getElementById('intro-video');
+
+      // Configurar eventos do vídeo
+      this.video.addEventListener('loadeddata', () => {
+        videoContainer.classList.add('active');
+      });
+
       this.video.addEventListener('ended', () => {
-        this.hide();
-        resolve();
+        this.finish(resolve);
       });
 
       this.video.addEventListener('error', (e) => {
-        console.error('Erro ao carregar vídeo de introdução:', e);
-        this.hide();
-        resolve();
+        console.error('Erro ao carregar vídeo:', e);
+        this.finish(resolve);
       });
 
-      // Mostrar com fade
-      setTimeout(() => {
-        this.container.classList.add('active');
-      }, 100);
+      // Tentar reproduzir o vídeo
+      this.video.play().catch((error) => {
+        console.warn('Autoplay bloqueado, aguardando interação do usuário:', error);
+        this.showPlayButton(resolve);
+      });
 
-      // Marcar como já exibido
-      localStorage.setItem('intro-played', 'true');
-      this.hasPlayed = true;
+      // Escutar tecla ESC para pular
+      document.addEventListener('keydown', this.handleKeyPress.bind(this));
     });
+  }
+
+  // Mostrar botão de play quando autoplay é bloqueado
+  showPlayButton(resolve) {
+    const playButton = document.createElement('button');
+    playButton.className = 'intro-play-btn';
+    playButton.innerHTML = '<i class="fas fa-play"></i> Iniciar Vídeo';
+    playButton.style.cssText = `
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      padding: 20px 40px;
+      border-radius: 50px;
+      font-size: 18px;
+      cursor: pointer;
+      z-index: 11;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+    `;
+
+    playButton.onclick = () => {
+      this.video.play();
+      playButton.remove();
+    };
+
+    this.container.appendChild(playButton);
+  }
+
+  // Verificar se deve mostrar novamente
+  shouldShowAgain() {
+    return false; // Por padrão, só mostra uma vez
+  }
+
+  // Lidar com teclas pressionadas
+  handleKeyPress(event) {
+    if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      this.skip();
+    }
   }
 
   // Pular introdução
   skip() {
     if (this.video) {
       this.video.pause();
-      this.hide();
     }
+    this.finish();
   }
 
-  // Esconder vídeo
-  hide() {
+  // Finalizar vídeo
+  finish(resolve) {
     if (this.container) {
-      this.container.classList.remove('active');
+      this.container.style.opacity = '0';
       setTimeout(() => {
-        this.container.remove();
-        this.container = null;
-        this.video = null;
+        if (this.container && this.container.parentNode) {
+          this.container.parentNode.removeChild(this.container);
+        }
       }, 500);
     }
+
+    // Marcar como reproduzido
+    localStorage.setItem('intro-played', 'true');
+
+    // Remover listener de teclas
+    document.removeEventListener('keydown', this.handleKeyPress);
+
+    if (resolve) resolve();
   }
 
-  // Verificar se deve mostrar novamente
-  shouldShowAgain() {
-    // Pode adicionar lógica para mostrar em ocasiões especiais
-    // Por exemplo, após atualizações importantes
-    const lastShown = localStorage.getItem('intro-last-shown');
-    const daysSinceLastShown = lastShown ? 
-      (Date.now() - parseInt(lastShown)) / (1000 * 60 * 60 * 24) : Infinity;
-    
-    // Mostrar novamente após 30 dias
-    return daysSinceLastShown > 30;
-  }
-
-  // Resetar preferência
+  // Resetar para mostrar novamente
   reset() {
     localStorage.removeItem('intro-played');
-    localStorage.removeItem('intro-last-shown');
     this.hasPlayed = false;
   }
 }
@@ -178,5 +219,12 @@ export class IntroVideo {
 // Criar instância global
 window.introVideo = new IntroVideo();
 
-// Exportar para uso modular
+// Inicializar quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', () => {
+  // Aguardar um breve momento para garantir que tudo carregou
+  setTimeout(() => {
+    window.introVideo.show();
+  }, 500);
+});
+
 export default IntroVideo;
