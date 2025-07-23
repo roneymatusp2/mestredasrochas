@@ -329,6 +329,11 @@
                             Animações
                         </label>
                     </div>
+                    <div class="setting-item">
+                        <button class="btn btn-secondary" onclick="if(window.introVideo) { window.introVideo.reset(); window.introVideo.show(); }">
+                            <i class="fas fa-play"></i> Ver Introdução Novamente
+                        </button>
+                    </div>
                 </div>
                 <button class="btn btn-primary" id="close-settings">Fechar</button>
             </div>
@@ -385,6 +390,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
     <script type="module" src="src/multiplayer.js"></script>
     <script type="module" src="src/lobby.js"></script>
+    <script type="module" src="src/intro-video.js"></script>
     <script src="src/game.js"></script>
     
     <!-- Service Worker Registration -->

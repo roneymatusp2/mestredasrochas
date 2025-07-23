@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Vídeo de Introdução</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        button {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #f47068;
+        }
+        video {
+            max-width: 100%;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .info {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Teste do Vídeo de Introdução</h1>
+        
+        <div class="info">
+            <p><strong>Arquivo:</strong> public/mestredasrochas_intro.mp4</p>
+            <p><strong>Tamanho:</strong> 2.36 MB</p>
+            <p><strong>Status:</strong> <span id="status">Verificando...</span></p>
+        </div>
+
+        <button onclick="playVideo()">▶️ Reproduzir Vídeo</button>
+        <button onclick="playWithIntroSystem()">🎬 Testar Sistema de Introdução</button>
+        <button onclick="resetIntro()">🔄 Resetar Preferências</button>
+
+        <div id="video-container"></div>
+    </div>
+
+    <script type="module" src="src/intro-video.js"></script>
+    <script>
+        // Verificar se o vídeo existe
+        fetch('public/mestredasrochas_intro.mp4')
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById('status').textContent = '✅ Vídeo encontrado!';
+                    document.getElementById('status').style.color = '#4CAF50';
+                } else {
+                    document.getElementById('status').textContent = '❌ Vídeo não encontrado';
+                    document.getElementById('status').style.color = '#f44336';
+                }
+            })
+            .catch(error => {
+                document.getElementById('status').textContent = '❌ Erro: ' + error.message;
+                document.getElementById('status').style.color = '#f44336';
+            });
+
+        function playVideo() {
+            const container = document.getElementById('video-container');
+            container.innerHTML = `
+                <video controls autoplay style="width: 100%;">
+                    <source src="public/mestredasrochas_intro.mp4" type="video/mp4">
+                    Seu navegador não suporta vídeos HTML5.
+                </video>
+            `;
+        }
+
+        async function playWithIntroSystem() {
+            if (window.introVideo) {
+                await window.introVideo.show();
+                alert('Vídeo de introdução concluído!');
+            } else {
+                alert('Sistema de introdução não carregado');
+            }
+        }
+
+        function resetIntro() {
+            if (window.introVideo) {
+                window.introVideo.reset();
+                alert('Preferências resetadas! O vídeo será exibido na próxima vez.');
+            }
+        }
+    </script>
+</body>
+</html>

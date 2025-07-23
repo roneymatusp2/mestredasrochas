@@ -1070,6 +1070,12 @@ class AudioManager {
 // ===== INITIALIZE GAME =====
 let game;
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Mostrar vídeo de introdução se disponível
+    if (window.introVideo) {
+        await window.introVideo.show();
+    }
+    
+    // Iniciar o jogo
     game = new MestreDasRochas();
 });
